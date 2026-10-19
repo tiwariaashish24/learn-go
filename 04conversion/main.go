@@ -19,7 +19,7 @@ func main() {
 
 	fmt.Println("Thanks for rating, ", input)
 
-	numRating, err := strconv.ParseFloat(strings.TrimSpace(input), 64)
+	numRating, err := strconv.ParseFloat(strings.TrimSpace(input), 64) //adding pwrful fn strings.
 
 	if err != nil {
 		fmt.Println(err)
