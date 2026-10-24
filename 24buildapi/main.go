@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -35,7 +36,26 @@ func (c *Course) IsEmpty() bool {
 }
 
 func main() {
+	fmt.Println("API-learncode")
+	r := mux.NewRouter()
 
+	//seeding
+	courses = append(courses, Course{CourseId: "2", CourseName: "Reactjs",
+		CoursePrice: 499, Author: &Author{FullName: "munna bhaiya", Website: "http:munnabhaiya.dev"}}) //when pointer come you can pass the refrence
+	courses = append(courses, Course{CourseId: "4", CourseName: "next-js",
+		CoursePrice: 469, Author: &Author{FullName: "gudu-bhaiya", Website: "http:gudubhaiya.dev"}})
+
+	//Router
+	r.HandleFunc("/", ServeHome).Methods("GET")
+	r.HandleFunc("/courses", getAllCourses).Methods("GET")
+	r.HandleFunc("/course/{id}", getSingelCourse).Methods("POST")
+	r.HandleFunc("/course", createOneCourse).Methods("POST")
+	r.HandleFunc("/course/{id}", updateOneCourse).Methods("PUT")
+	r.HandleFunc("/course/{id}", deleteOneCourse).Methods("DELETE")
+	r.HandleFunc("/courses", deleteAllCourses).Methods("DELETE")
+
+	//listen on port
+	log.Fatal(http.ListenAndServe("4000", r))
 }
 
 func ServeHome(w http.ResponseWriter, r *http.Request) {
@@ -91,6 +111,67 @@ func createOneCourse(w http.ResponseWriter, r *http.Request) {
 	course.CourseId = strconv.Itoa(rand.Intn(100))
 	courses = append(courses, course)
 	json.NewEncoder(w).Encode(course)
+	return
+
+}
+
+func updateOneCourse(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Update one course")
+	w.Header().Set("content-type", "application/json")
+
+	//grab id from req
+	params := mux.Vars(r)
+	//loop, id , remove , add with my id
+
+	for index, course := range courses {
+		if course.CourseId == params["id"] {
+			courses = append(courses[:index], courses[index+1:]...)
+			var course Course
+			_ = json.NewDecoder(r.Body).Decode(&course)
+			course.CourseId = params["id"]
+			courses = append(courses, course)
+			json.NewEncoder(w).Encode(course)
+			return
+		}
+
+	}
+	//TODO: send a response when id is not found
+
+}
+
+func deleteOneCourse(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Delete one Course")
+	w.Header().Set("Content-Type", "application/json")
+
+	// fetch id
+	params := mux.Vars(r)
+
+	// loop, {id},  remove (index, index+1)
+
+	for index, course := range courses {
+		if course.CourseId == params["id"] {
+			courses = append(courses[:index], courses[index+1:]...)
+			break
+
+		}
+
+	}
+	w.WriteHeader(http.StatusNotFound)
+	json.NewEncoder(w).Encode(map[string]string{
+		"error": "No course found with given ID",
+	})
+
+}
+
+func deleteAllCourses(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Delete all Courses")
+	w.Header().Set("Content-Type", "application/json")
+
+	courses = []Course{}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "All courses delete Successfully",
+	})
 
 }
 
@@ -110,4 +191,6 @@ func createOneCourse(w http.ResponseWriter, r *http.Request) {
 13. r.Body contains data sent in the request.
 14. Check errors when decoding JSON or reading request data.
 15. Return HTTP 404 when a course is not found.
+16. w http.ResponseWriter — Used to send a response to the client, such as JSON, text, or HTML.
+17. r *http.Request — Contains information about the incoming request, such as the URL, HTTP method, headers, and request body.
 */
