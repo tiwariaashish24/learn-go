@@ -55,7 +55,7 @@ func main() {
 	r.HandleFunc("/courses", deleteAllCourses).Methods("DELETE")
 
 	//listen on port
-	log.Fatal(http.ListenAndServe("4000", r))
+	log.Fatal(http.ListenAndServe(":4000", r))
 }
 
 func ServeHome(w http.ResponseWriter, r *http.Request) {
@@ -103,6 +103,9 @@ func createOneCourse(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("No data is inside JSON")
 		return
 	}
+
+	//TODO: check only if title is duplicate
+	//loops, title matches and cours.coursename
 
 	//generate unique id , string
 	//append course into courses
