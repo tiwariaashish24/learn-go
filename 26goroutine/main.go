@@ -8,6 +8,8 @@ import (
 )
 
 var wg sync.WaitGroup //pointer
+var signals = []string{"test"}
+var mut sync.Mutex //pointer
 
 func main() {
 	go greeter("hello")
@@ -27,6 +29,7 @@ func main() {
 		wg.Add(1)
 	}
 	wg.Wait()
+	fmt.Println(signals)
 }
 
 func greeter(s string) {
@@ -43,8 +46,13 @@ func getStatusCode(endpoint string) {
 	res, err := http.Get(endpoint)
 	if err != nil {
 		fmt.Println("OOPS in endpoint")
+	} else {
+		mut.Lock()
+		signals = append(signals, endpoint)
+		mut.Unlock()
+		fmt.Println("%d status code for %s", res.StatusCode, endpoint)
 	}
-	fmt.Println("%d status code for %s", res.StatusCode, endpoint)
+
 }
 
 /*
@@ -65,4 +73,15 @@ func getStatusCode(endpoint string) {
 16. Check HTTP errors before accessing the response.
 :--------Remember: Add() → go function() → Done() → Wait().----------------:
 
+*/
+/*
+1. Mutex stands for Mutual Exclusion.
+2. Mutex is used to protect shared data.
+3. Mutex is part of the sync package.
+4. mu.Lock() locks the critical section.
+5. mu.Unlock() releases the lock.
+6. Only one goroutine using the same mutex can enter the locked section at a time.
+7. Mutex helps prevent data races.
+8. Always unlock a mutex after locking it.
+9. WaitGroup waits for goroutines to finish, while Mutex protects shared data.
 */
